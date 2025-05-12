@@ -714,13 +714,9 @@ public class AccountManagement002 {
             System.out.println("------------------------------------------------");
 
             System.out.println("------------------------------------------------");
-            System.out.println("Another FD: ");
-
-            FDCreation(acc1);
-            System.out.println("ACCOUNT DETAILS:");
-            System.out.println("------------------------------------------------");
-            System.out.println(acc1);
-            System.out.println("------------------------------------------------");
+            System.out.println("Do you want to open another fixed deposit?:");
+            
+            decision = sc.nextLine();
         }
 
         System.out.println("Do you want to issue a loan?");
