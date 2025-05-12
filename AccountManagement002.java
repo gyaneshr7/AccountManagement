@@ -750,6 +750,9 @@ public class AccountManagement002 {
             System.exit(0);
         }
 
+        System.out.println("Enter the amount of loan you want to issue: ");
+        balance = sc.nextLong();
+
         System.out.println("Enter downpayment amount:");
         int downPayment = sc.nextInt();
 
