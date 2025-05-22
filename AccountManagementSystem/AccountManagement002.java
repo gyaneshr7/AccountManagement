@@ -587,9 +587,11 @@ public class AccountManagement002 {
         System.out.println("Enter the Fixed Deposit ID:");
         String fdID = sc.nextLine();
 
-        if (acc1.validateID(fdID) == false) {
-            System.err.println("Fixed Deposit is inactive or invalid.");
-            System.exit(0);
+        while (acc1.validateID(fdID) == false) {
+            System.err.println("Fixed Deposit is inactive or invalid. Please enter a valid ID or press 1 to exit.");
+            fdID = sc.nextLine();
+            if (fdID.equals("1")) 
+                System.exit(0);
         }
 
         boolean doesFDAlreadyExist = acc1.FDExists(fdID);
@@ -865,6 +867,6 @@ public class AccountManagement002 {
         System.out.println("Loan repaid successfully");
         sc.close();
 
-        //validation of existing FDs and while loop for all the validations plus hashmap challenge plus github
+        //validation of existing FDs and while loop for all the validations plus hashmap challenge
     }
 }
