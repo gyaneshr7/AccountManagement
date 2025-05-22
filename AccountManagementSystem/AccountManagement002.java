@@ -719,9 +719,11 @@ public class AccountManagement002 {
 
         System.out.println("Enter the name of the account holder: ");
         String name = sc.nextLine();
-        if (validateName(name) == false) {
-            System.out.println("Invalid name");
-            System.exit(0);
+        while (validateName(name) == false) {
+            System.out.println("Invalid name. Please enter a valid name or press 1 to exit.");
+            name = sc.nextLine();
+            if (name.equals("1")) 
+                System.exit(0);
         }
 
         System.out.println("Enter the address of the account holder: ");
@@ -733,9 +735,12 @@ public class AccountManagement002 {
 
         System.out.println("Enter the contact number of the account holder: ");
         String phoneNo = sc.nextLine();
-        if (validatePhoneNo(phoneNo) == false) {
+        while (validatePhoneNo(phoneNo) == false) {
             System.out.println("Invalid contact number");
-            System.exit(0);
+            phoneNo = sc.nextLine();
+            if (phoneNo.equals("1")) 
+                System.exit(0);
+
         }
 
         System.out.println("Enter the date of birth(dd-MM-yyyy) of the account holder: ");
@@ -867,6 +872,6 @@ public class AccountManagement002 {
         System.out.println("Loan repaid successfully");
         sc.close();
 
-        //validation of existing FDs and while loop for all the validations plus hashmap challenge
+        //validation of existing FDs plus hashmap challenge
     }
 }
