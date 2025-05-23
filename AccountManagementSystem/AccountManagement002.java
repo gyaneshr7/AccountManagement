@@ -7,18 +7,27 @@ package accountmanagement;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
-import java.util.Scanner;
+import java.util.*;
+import java.io.Serializable;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author hp
  */
-// Created an abstract class Account of which no object can be instantiated in
-// the main class but can only be inherited to other classes
-// as the class Account is just an abstract concept.
 class InvalidDateException extends Exception {
 }
 
+// Created an abstract class Account of which no object can be instantiated in
+// the main class but can only be inherited to other classes
+// as the class Account is just an abstract concept.
 abstract class Account {
 
     private String accNo;
@@ -94,7 +103,7 @@ abstract class Account {
     }
 }
 
-class SavingsAccount extends Account {
+class SavingsAccount extends Account implements Serializable {
 
     // Here we have nested FixedDeposit class inside SavingsAccount as we don't want
     // any other class to create an object of FixedDeposit
@@ -590,8 +599,9 @@ public class AccountManagement002 {
         while (acc1.validateID(fdID) == false) {
             System.err.println("Fixed Deposit is inactive or invalid. Please enter a valid ID or press 1 to exit.");
             fdID = sc.nextLine();
-            if (fdID.equals("1")) 
+            if (fdID.equals("1")) {
                 System.exit(0);
+            }
         }
 
         boolean doesFDAlreadyExist = acc1.FDExists(fdID);
@@ -704,17 +714,18 @@ public class AccountManagement002 {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args){
+             
         Scanner sc = new Scanner(System.in);
-        System.out.println();
 
         System.out.println("Enter the account number: ");
         String accNo = sc.nextLine();
         while (validateAccountNumber(accNo) == false) {
             System.out.println("Invalid account number. Please enter a valid account number or enter 1 for exit: ");
             accNo = sc.nextLine();
-            if (accNo.equals("1")) 
+            if (accNo.equals("1")) {
                 System.exit(0);
+            }
         }
 
         System.out.println("Enter the name of the account holder: ");
@@ -722,8 +733,9 @@ public class AccountManagement002 {
         while (validateName(name) == false) {
             System.out.println("Invalid name. Please enter a valid name or press 1 to exit.");
             name = sc.nextLine();
-            if (name.equals("1")) 
+            if (name.equals("1")) {
                 System.exit(0);
+            }
         }
 
         System.out.println("Enter the address of the account holder: ");
@@ -738,8 +750,9 @@ public class AccountManagement002 {
         while (validatePhoneNo(phoneNo) == false) {
             System.out.println("Invalid contact number");
             phoneNo = sc.nextLine();
-            if (phoneNo.equals("1")) 
+            if (phoneNo.equals("1")) {
                 System.exit(0);
+            }
 
         }
 
@@ -791,6 +804,28 @@ public class AccountManagement002 {
             decision = sc.nextLine();
         }
 
+        // import the hashmap from the database file to the current program
+        HashMap<String,SavingsAccount> tempdatabase;
+        try{
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream("database.txt"));
+            tempdatabase = (HashMap)ois.readObject();
+        }
+        catch(Exception ex){
+            tempdatabase = new HashMap<>();
+        }
+        
+        tempdatabase.put(accNo, acc1);
+        
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("database.txt"));
+            oos.writeObject(tempdatabase);
+            System.out.println("Account saved successfully");
+        } catch (IOException ex) {
+            System.err.println("Some error occured while saving the account in the database");
+            System.exit(0);
+        }
+       
+        
         System.out.println("Do you want to issue a loan?");
         decision = sc.nextLine();
 
@@ -872,6 +907,5 @@ public class AccountManagement002 {
         System.out.println("Loan repaid successfully");
         sc.close();
 
-        //validation of existing FDs plus hashmap challenge
     }
 }
