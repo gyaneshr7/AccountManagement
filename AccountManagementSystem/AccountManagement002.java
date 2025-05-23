@@ -11,8 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Gyanesh
@@ -27,7 +25,7 @@ abstract class Account {
 
     private String accNo;
     private String name;
-    protected double balance;
+    private double balance;
     private String address;
     private String phoneNo;
     private LocalDate dob;
@@ -64,6 +62,13 @@ abstract class Account {
     public void setPhoneNo(String phoneNo) {
         this.phoneNo = phoneNo;
     }
+
+    void setBalance(double balance) {
+        this.balance = balance;
+    }
+    
+    //non-parameterized constructor initialized for Serialization
+    public Account(){}
 
     // constructors
     public Account(String accNo, String name, String address, String phoneNo, LocalDate dob) {
@@ -103,7 +108,7 @@ class SavingsAccount extends Account implements Serializable {
     // Here we have nested FixedDeposit class inside SavingsAccount as we don't want
     // any other class to create an object of FixedDeposit
     // and want to allow only SavingsAccount to create FixedDeposit object.
-    private class FixedDeposit {
+    private class FixedDeposit implements Serializable {
 
         private String accNo;
         private String name;
@@ -159,31 +164,33 @@ class SavingsAccount extends Account implements Serializable {
 
     private FixedDeposit[] fixedDeposits;
     private static int size;
+    
+    //non-parameterized constructor initialized for Serialization
+    public SavingsAccount(){
+        System.out.println("Savings Account Instantiated");
+    }
+
+    // Methods for depositing or withdrawing a certain amount
+    public void deposit(float amt) {
+        float finalAmt = (float) getBalance() + amt;
+        setBalance(finalAmt);
+    }
+
+    public void withdraw(float amt) {
+        float finalAmt = (float) getBalance() - amt;
+        setBalance(finalAmt);
+    }
 
     // Constructors
     public SavingsAccount(String accNo, String name, String address, String phoneNo, LocalDate dob) {
         super(accNo, name, address, phoneNo, dob);
-        super.balance = 0.0;
+        super.setBalance(0.0);
         fixedDeposits = null;
     }
 
     public SavingsAccount(String accNo, String name, String address, String phoneNo, LocalDate dob, double balance) {
         super(accNo, name, address, phoneNo, dob, balance);
         fixedDeposits = null;
-    }
-
-    // Methods for depositing or withdrawing a certain amount
-    public void deposit(float amt) {
-        super.balance += amt;
-    }
-
-    public void withdraw(float amt) {
-        super.balance -= amt;
-    }
-
-    // method for getting the balance
-    public double getBalance() {
-        return super.balance;
     }
 
     // method for validating Fixed Deposit ID
@@ -228,13 +235,13 @@ class SavingsAccount extends Account implements Serializable {
 
     // Method for getting the details of the account
     public String toString() {
-        return "Account Number:\n" + super.getAccountNo() + "\nBalance\n" + super.balance + "\nAccount Holder Name:\n"
+        return "Account Number:\n" + super.getAccountNo() + "\nBalance\n" + super.getBalance() + "\nAccount Holder Name:\n"
                 + super.getName() + "\nAccount Holder contact number:\n" + super.getPhoneNo();
     }
 
     // Methods associated with creating and breaking fixed deposits.
     public void createFixedDeposit(String fdID, double principalAmt, int maturityInDays, byte frequency) {
-        if (principalAmt > super.balance) {
+        if (principalAmt > super.getBalance()) {
             System.out.println("Not enough balance");
             System.exit(0);
         }
@@ -254,7 +261,9 @@ class SavingsAccount extends Account implements Serializable {
 
         this.fixedDeposits[size++] = new FixedDeposit(super.getAccountNo(), super.getName(), fdID, principalAmt, maturityInDays,
                 frequency);
-        super.balance -= principalAmt;
+
+        double currBalance = getBalance();
+        setBalance(currBalance - principalAmt);
     }
 
     public double amountAtMaturity(String fdID) {
@@ -311,7 +320,8 @@ class SavingsAccount extends Account implements Serializable {
                 fixedDeposit.finalAmt = finalAmt;
                 fixedDeposit.isActive = false;
 
-                super.balance += finalAmt;
+                double currBalance = getBalance();
+                setBalance(currBalance + finalAmt);
                 return finalAmt;
             }
         }
@@ -380,7 +390,9 @@ class SavingsAccount extends Account implements Serializable {
                     fixedDeposit.isActive = false;
                 }
 
-                super.balance += withdrawalAmount;
+//                super.balance += withdrawalAmount;
+                double currBalance = getBalance();
+                setBalance(currBalance + withdrawalAmount);
                 return withdrawalAmount;
             }
         }
@@ -453,7 +465,7 @@ class LoanAccount extends Account {
         this.isActive = true;
         this.savingsAccount = savingsAccount;
         this.issueDate = LocalDate.now();
-        this.principalAmt = super.balance;
+        this.principalAmt = super.getBalance();
         this.dueDate = issueDate.plusYears(tenureInYears);
 
         switch (LoanType) {
@@ -555,7 +567,7 @@ class LoanAccount extends Account {
     }
 
     public String toString() {
-        return "Type of Loan:\n" + this.LoanType + "\nLoan Amount:\n" + super.balance + "\nPayable Amount:\n"
+        return "Type of Loan:\n" + this.LoanType + "\nLoan Amount:\n" + super.getBalance() + "\nPayable Amount:\n"
                 + this.finalAmt + "\nDue Date:\n" + this.dueDate + "\nTenure of the Loan\n" + this.tenure;
     }
 }
@@ -709,8 +721,8 @@ public class AccountManagement002 {
         }
     }
 
-    public static void main(String[] args){
-             
+    public static void main(String[] args) {
+
         Scanner sc = new Scanner(System.in);
 
         System.out.println("Enter the account number: ");
@@ -800,27 +812,26 @@ public class AccountManagement002 {
         }
 
         // import the hashmap from the database file to the current program
-        HashMap<String,SavingsAccount> tempdatabase;
-        try{
+        TreeMap<String, SavingsAccount> tempdatabase;
+        try {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream("database.txt"));
-            tempdatabase = (HashMap)ois.readObject();
+            tempdatabase = (TreeMap) ois.readObject();
+        } catch (Exception ex) {
+            tempdatabase = new TreeMap<>();
         }
-        catch(Exception ex){
-            tempdatabase = new HashMap<>();
-        }
-        
+
         tempdatabase.put(accNo, acc1);
-        
+
         try {
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("database.txt"));
             oos.writeObject(tempdatabase);
             System.out.println("Account saved successfully");
         } catch (IOException ex) {
             System.err.println("Some error occured while saving the account in the database");
+            System.out.println(ex.getMessage());
             System.exit(0);
         }
-       
-        
+
         System.out.println("Do you want to issue a loan?");
         decision = sc.nextLine();
 
@@ -901,6 +912,5 @@ public class AccountManagement002 {
 
         System.out.println("Loan repaid successfully");
         sc.close();
-
     }
 }
