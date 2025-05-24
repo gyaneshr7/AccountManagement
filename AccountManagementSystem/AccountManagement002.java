@@ -4,25 +4,15 @@ import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.io.Serializable;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 
-/**
- * @author Gyanesh
- */
-class InvalidDateException extends Exception {
-}
+/** @author Gyanesh */
+class InvalidDateException extends Exception {}
 
 // Created an abstract class Account of which no object can be instantiated in
 // the main class but can only be inherited to other classes
 // as the class Account is just an abstract concept.
 abstract class Account {
-
     private String accNo;
     private String name;
     private double balance;
@@ -66,9 +56,10 @@ abstract class Account {
     void setBalance(double balance) {
         this.balance = balance;
     }
-    
+
     //non-parameterized constructor initialized for Serialization
-    public Account(){}
+    public Account() {
+    }
 
     // constructors
     public Account(String accNo, String name, String address, String phoneNo, LocalDate dob) {
@@ -164,9 +155,9 @@ class SavingsAccount extends Account implements Serializable {
 
     private FixedDeposit[] fixedDeposits;
     private static int size;
-    
+
     //non-parameterized constructor initialized for Serialization
-    public SavingsAccount(){
+    public SavingsAccount() {
         System.out.println("Savings Account Instantiated");
     }
 
@@ -849,9 +840,13 @@ public class AccountManagement002 {
         System.out.println("Enter the index of the Loan that you wan to issue:");
         int index = sc.nextInt();
 
-        if (index > 5 || index <= 0) {
+        while (index > 5 || index <= 0) {
             System.out.println("Invalid Index");
-            System.exit(0);
+            System.out.println("Please enter a valid index or press -1 to exit.");
+            index = sc.nextInt();
+            if (index == -1) {
+                System.exit(0);
+            }
         }
 
         System.out.println("Enter the Loan ID:");
