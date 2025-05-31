@@ -6,19 +6,25 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.io.*;
 
-/** @author Gyanesh */
-class InvalidDateException extends Exception {}
+/**
+ * @author Gyanesh
+ */
+class InvalidDateException extends Exception {
+}
 
 // Created an abstract class Account of which no object can be instantiated in
 // the main class but can only be inherited to other classes
 // as the class Account is just an abstract concept.
-abstract class Account {
+abstract class Account implements Serializable {
+
     private String accNo;
     private String name;
     private double balance;
     private String address;
     private String phoneNo;
     private LocalDate dob;
+
+    private static final long serialVersionUID = 1L;
 
     // getters and setters
     public String getAccountNo() {
@@ -114,6 +120,8 @@ class SavingsAccount extends Account implements Serializable {
         private static boolean nextFlag = false;
         private static LocalDate recentFDBreakDate = null;
 
+        private static final long serialVersionUID = 2L;
+
         private FixedDeposit(String accNo, String name, String fdID, double principalAmt, int maturityInDays, byte frequency) {
             this.accNo = accNo;
             this.name = name;
@@ -155,6 +163,8 @@ class SavingsAccount extends Account implements Serializable {
 
     private FixedDeposit[] fixedDeposits;
     private static int size;
+
+    private static final long serialVersionUID = 2L;
 
     //non-parameterized constructor initialized for Serialization
     public SavingsAccount() {
@@ -803,12 +813,12 @@ public class AccountManagement002 {
         }
 
         // import the hashmap from the database file to the current program
-        TreeMap<String, SavingsAccount> tempdatabase;
+        HashMap<String, SavingsAccount> tempdatabase;
         try {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream("database.txt"));
-            tempdatabase = (TreeMap) ois.readObject();
+            tempdatabase = (HashMap) ois.readObject();
         } catch (Exception ex) {
-            tempdatabase = new TreeMap<>();
+            tempdatabase = new HashMap<>();
         }
 
         tempdatabase.put(accNo, acc1);

@@ -4,12 +4,10 @@ import accountmanagement.SavingsAccount;
 import java.util.*;
 import java.io.*;
 
-/**
- * @author Gyanesh
- */
+/** @author Gyanesh */
 public class AccountInfo {
 
-    private static TreeMap<String, SavingsAccount> tempdatabase;
+    private static HashMap<String, SavingsAccount> tempdatabase;
 
     public static void viewAllAccounts() {
         tempdatabase.forEach((key, value) -> {
@@ -29,10 +27,10 @@ public class AccountInfo {
     }
 
     public static void main(String[] args) {
-        // import the treemap from the database file to the current program
+        // import the hashmap from the database file to the current program
         try {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream("database.txt"));
-            tempdatabase = (TreeMap) ois.readObject();
+            tempdatabase = (HashMap) ois.readObject();
         } catch (ClassNotFoundException ex) {
             System.err.println("The bank database is empty. Please create an account first.");
         } catch (IOException ex) {
@@ -49,30 +47,32 @@ public class AccountInfo {
                 case 1:
                     System.out.println("Enter the account number:");
                     String accno = sc.nextLine();
-                    
-                    while (!tempdatabase.containsKey(accno)){
+
+                    while (!tempdatabase.containsKey(accno)) {
                         System.out.println("Please enter a valid account number or press -1 to exit.");
                         accno = sc.nextLine();
                         if (accno.equals("-1"))
                             System.exit(0);
                     }
-                    
+
                     viewAccount(accno);
+                    sc.close();
                     return;
 
                 case 2:
                     viewAllAccounts();
+                    sc.close();
                     return;
 
                 default:
                     System.out.println("Please enter a valid number else press -1 to exit.");
                     option = sc.nextInt();
-                    if (option == -1)
+                    if (option == -1) {
+                        sc.close();
                         System.exit(0);
+                    }
                     break;
             }
         }
-        //deleteAccount(seperate class)
-        //Implement Serialization-Deserialization compatibilty
     }
 }

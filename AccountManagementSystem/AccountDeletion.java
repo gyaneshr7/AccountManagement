@@ -1,13 +1,43 @@
-package AccountManagementSystem;
+package accountmanagement;
 
-/** @author hp */
+import accountmanagement.SavingsAccount;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Scanner;
+
+/**
+ * @author hp
+ */
 public class AccountDeletion {
 
-    /**
-     * @param args the command line arguments
-     */
+    private static HashMap<String, SavingsAccount> tempdatabase;
+
     public static void main(String[] args) {
-        // TODO code application logic here
+        // import the hashmap from the database file to the current program
+        try (Scanner sc = new Scanner(System.in)) {
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream("database.txt"));
+            tempdatabase = (HashMap) ois.readObject();
+
+            System.out.println("Enter the account number:");
+            String accno = sc.nextLine();
+
+            while (!tempdatabase.containsKey(accno)) {
+                System.out.println("Please enter a valid account number or press -1 to exit.");
+                accno = sc.nextLine();
+
+                if (accno.equals("-1")) {
+                    System.exit(0);
+                }
+            }
+            tempdatabase.remove(accno);
+
+            ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("database.txt"));
+            oos.writeObject(tempdatabase);
+
+        } catch (ClassNotFoundException ex) {
+            System.err.println("The bank database is empty. Please create an account first.");
+        } catch (IOException ex) {
+            System.out.println(ex);
+        }
     }
-    
 }

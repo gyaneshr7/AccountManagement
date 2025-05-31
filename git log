@@ -1,0 +1,53 @@
+[33mcommit b20fd9d4920c0c6d4716a0332b4bf6c98baf6c66[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: GYANESH <gyaneshr7@gmail.com>
+Date:   Fri May 30 13:43:58 2025 +0530
+
+    Saved changes until implmenting Hashset
+
+[33mcommit cda4b0efaa0957914381a3b566dff30a93e6e18c[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: GYANESH <gyaneshr7@gmail.com>
+Date:   Sat May 24 11:28:31 2025 +0530
+
+    Deletion functionality implemented in a seperate file
+
+[33mcommit 815dc88d3445b2791fa9fc2ba109cc1d1c8d993b[m
+Author: GYANESH <gyaneshr7@gmail.com>
+Date:   Sat May 24 10:41:28 2025 +0530
+
+    Implemented the functionalities to view accounts in AccountInfo
+
+[33mcommit 2afe118dc45c9015007e55f0de1c11b7f412106a[m
+Author: GYANESH <gyaneshr7@gmail.com>
+Date:   Fri May 23 13:32:08 2025 +0530
+
+    Used TreeMap for temporary storage from database file
+
+[33mcommit 796529120661cbaab0f7cbf2b33f34f40c88b774[m
+Author: GYANESH <gyaneshr7@gmail.com>
+Date:   Fri May 23 10:00:27 2025 +0530
+
+    Minor Tweaks
+
+[33mcommit ed1097fe15742869f77ffea93fd67f3a8c74282e[m
+Author: GYANESH <gyaneshr7@gmail.com>
+Date:   Fri May 23 09:38:06 2025 +0530
+
+    HashMap functionality added to save the accounts
+
+[33mcommit 534ba239241abf6508e9b0bc055d232255496e85[m
+Author: GYANESH <gyaneshr7@gmail.com>
+Date:   Thu May 22 21:57:59 2025 +0530
+
+    Validation update 2
+
+[33mcommit 75ce3e1cf324fa4b934044bb115668034561d20c[m
+Author: GYANESH <gyaneshr7@gmail.com>
+Date:   Thu May 22 14:09:56 2025 +0530
+
+    Validation Update 1
+
+[33mcommit 76f32e822d77dcfb8dd5046321af79119d854105[m
+Author: GYANESH <gyaneshr7@gmail.com>
+Date:   Thu May 22 10:38:34 2025 +0530
+
+    First updated commit
