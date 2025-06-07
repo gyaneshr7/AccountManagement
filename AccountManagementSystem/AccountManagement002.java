@@ -582,8 +582,8 @@ public class AccountManagement002 {
         return true;
     }
 
-    public static boolean validateAccountNumber(String accNo) {
-        return accNo.matches("\\d{11,16}");
+    public static boolean validateAccountNumber(String accNo, HashMap<String,SavingsAccount> tempdatabase) {
+        return accNo.matches("\\d{11,16}") && !tempdatabase.containsKey(accNo) && tempdatabase.get(accNo) == null;
     }
 
     public static boolean validatePhoneNo(String phoneNo) {
@@ -727,11 +727,20 @@ public class AccountManagement002 {
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
+        
+        // import the hashmap from the database file to the current program
+        HashMap<String, SavingsAccount> tempdatabase;
+        try {
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream("database.txt"));
+            tempdatabase = (HashMap) ois.readObject();
+        } catch (Exception ex) {
+            tempdatabase = new HashMap<>();
+        }
 
         System.out.println("Enter the account number: ");
         String accNo = sc.nextLine();
-        while (validateAccountNumber(accNo) == false) {
-            System.out.println("Invalid account number. Please enter a valid account number or enter 1 for exit: ");
+        while (validateAccountNumber(accNo,tempdatabase) == false) {
+            System.out.println("Either the account number is invalid or it already exists. Please enter a valid account number or enter 1 for exit: ");
             accNo = sc.nextLine();
             if (accNo.equals("1")) {
                 System.exit(0);
@@ -812,15 +821,6 @@ public class AccountManagement002 {
             System.out.println("Do you want to open another fixed deposit?:");
 
             decision = sc.nextLine();
-        }
-
-        // import the hashmap from the database file to the current program
-        HashMap<String, SavingsAccount> tempdatabase;
-        try {
-            ObjectInputStream ois = new ObjectInputStream(new FileInputStream("database.txt"));
-            tempdatabase = (HashMap) ois.readObject();
-        } catch (Exception ex) {
-            tempdatabase = new HashMap<>();
         }
 
         tempdatabase.put(accNo, acc1);
