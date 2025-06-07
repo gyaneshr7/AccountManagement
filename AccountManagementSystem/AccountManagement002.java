@@ -161,8 +161,7 @@ class SavingsAccount extends Account implements Serializable {
         }
     }
 
-    private FixedDeposit[] fixedDeposits;
-    private static int size;
+    private TreeMap<String, FixedDeposit> fixedDeposits;
 
     private static final long serialVersionUID = 2L;
 
@@ -204,21 +203,18 @@ class SavingsAccount extends Account implements Serializable {
             return true;
         }
 
-        for (FixedDeposit fixedDeposit : this.fixedDeposits) {
-            if (fixedDeposit != null && fixedDeposit.fdID.equals(fdID) && !fixedDeposit.isActive) {
-                return false;
-            }
+        if (fixedDeposits.containsKey(fdID) && !fixedDeposits.get(fdID).isActive) {
+            return false;
         }
 
         return true;
     }
 
-    public boolean FDExists(String fdID) {
+    public boolean ActiveFDExisits(String fdID) {
         if (this.fixedDeposits != null) {
-            for (FixedDeposit fixedDeposit : this.fixedDeposits) {
-                return fixedDeposit != null && fixedDeposit.fdID.equals(fdID) && fixedDeposit.isActive == true
-                        && (int) fixedDeposit.principalAmt > 0;
-            }
+            FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
+            return fixedDeposit != null && fixedDeposit.isActive == true
+                    && (int) fixedDeposit.principalAmt > 0;
         }
 
         return false;
@@ -226,10 +222,9 @@ class SavingsAccount extends Account implements Serializable {
 
     public void validateDate(String fdID, int year, int month, int day) throws InvalidDateException, DateTimeException {
         if (this.fixedDeposits != null) {
-            for (FixedDeposit fixedDeposit : this.fixedDeposits) {
-                if (fixedDeposit != null && fixedDeposit.fdID.equals(fdID) && LocalDate.of(year, month, day).compareTo(fixedDeposit.issueDate) <= 0) {
-                    throw new InvalidDateException();
-                }
+            FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
+            if (fixedDeposit != null && LocalDate.of(year, month, day).compareTo(fixedDeposit.issueDate) <= 0) {
+                throw new InvalidDateException();
             }
         }
     }
@@ -248,83 +243,80 @@ class SavingsAccount extends Account implements Serializable {
         }
 
         if (this.fixedDeposits == null) {
-            this.fixedDeposits = new FixedDeposit[100];
-            size = 0;
+            this.fixedDeposits = new TreeMap<>();
         }
 
-        for (FixedDeposit fixedDeposit : this.fixedDeposits) {
-            if (fixedDeposit != null && fixedDeposit.fdID.equals(fdID) && fixedDeposit.isActive == true
-                    && (int) fixedDeposit.principalAmt > 0) {
-                System.out.println("You cannot create new FD with the same ID instead you can continue it.");
-                return;
-            }
+        FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
+        if (fixedDeposit != null && fixedDeposit.isActive == true
+                && (int) fixedDeposit.principalAmt > 0) {
+            System.out.println("You cannot create new FD with the same ID instead you can continue it.");
+            return;
         }
 
-        this.fixedDeposits[size++] = new FixedDeposit(super.getAccountNo(), super.getName(), fdID, principalAmt, maturityInDays,
-                frequency);
+        fixedDeposits.putIfAbsent(fdID, new FixedDeposit(super.getAccountNo(), super.getName(), fdID, principalAmt, maturityInDays,
+                frequency));
 
         double currBalance = getBalance();
         setBalance(currBalance - principalAmt);
     }
 
     public double amountAtMaturity(String fdID) {
-        for (FixedDeposit fixedDeposit : this.fixedDeposits) {
-            if (fixedDeposit.fdID.equals(fdID)) {
-                if (fixedDeposit.isActive == false) {
-                    return -2.0;
-                }
 
-                return fixedDeposit.principalAmt
-                        * Math.pow((1 + (fixedDeposit.interestRate / 100) / fixedDeposit.frequency),
-                                (fixedDeposit.frequency * fixedDeposit.maturityInDays / 365.0));
+        FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
+        if (fixedDeposit != null) {
+            if (fixedDeposit.isActive == false) {
+                return -2.0;
             }
+
+            return fixedDeposit.principalAmt
+                    * Math.pow((1 + (fixedDeposit.interestRate / 100) / fixedDeposit.frequency),
+                            (fixedDeposit.frequency * fixedDeposit.maturityInDays / 365.0));
         }
         return -1.0;
     }
 
     public double amountAtWithdrawal(String fdID, int year, int month, int days) {
-        for (FixedDeposit fixedDeposit : this.fixedDeposits) {
-            if (fixedDeposit.fdID.equals(fdID)) {
-                long numberOfDaysElapsed = fixedDeposit.issueDate.until(LocalDate.of(year, month, days), ChronoUnit.DAYS);
+        FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
 
-                float revisedInterestRate = setRevisedInterestRate(numberOfDaysElapsed);
-                revisedInterestRate = Math.min(revisedInterestRate - 1, fixedDeposit.interestRate - 1);
+        if (fixedDeposit != null) {
+            long numberOfDaysElapsed = fixedDeposit.issueDate.until(LocalDate.of(year, month, days), ChronoUnit.DAYS);
 
-                return fixedDeposit.principalAmt
-                        * Math.pow((1 + (revisedInterestRate / 100) / fixedDeposit.frequency),
-                                (fixedDeposit.frequency * (numberOfDaysElapsed / 365.0)));
-            }
+            float revisedInterestRate = setRevisedInterestRate(numberOfDaysElapsed);
+            revisedInterestRate = Math.min(revisedInterestRate - 1, fixedDeposit.interestRate - 1);
+
+            return fixedDeposit.principalAmt
+                    * Math.pow((1 + (revisedInterestRate / 100) / fixedDeposit.frequency),
+                            (fixedDeposit.frequency * (numberOfDaysElapsed / 365.0)));
         }
         return -1.0;
     }
 
     public double breakFixedDeposit(String fdID, int year, int month, int days) {
-        for (FixedDeposit fixedDeposit : this.fixedDeposits) {
-            if (fixedDeposit.fdID.equals(fdID)) {
-                if (fixedDeposit.isActive == false) {
-                    return -2.0;
-                }
-
-                FixedDeposit.nextFlag = true;
-                FixedDeposit.recentFDBreakDate = LocalDate.of(year, month, days);
-
-                long numberOfDaysElapsed = fixedDeposit.issueDate.until(LocalDate.of(year, month, days), ChronoUnit.DAYS);
-
-                if (numberOfDaysElapsed < fixedDeposit.maturityInDays) {
-                    return -3.0;
-                }
-
-                double finalAmt = fixedDeposit.principalAmt
-                        * Math.pow((1 + (fixedDeposit.interestRate / 100) / fixedDeposit.frequency),
-                                (fixedDeposit.frequency * fixedDeposit.maturityInDays / 365.0));
-
-                fixedDeposit.finalAmt = finalAmt;
-                fixedDeposit.isActive = false;
-
-                double currBalance = getBalance();
-                setBalance(currBalance + finalAmt);
-                return finalAmt;
+        FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
+        if (fixedDeposit != null) {
+            if (fixedDeposit.isActive == false) {
+                return -2.0;
             }
+
+            FixedDeposit.nextFlag = true;
+            FixedDeposit.recentFDBreakDate = LocalDate.of(year, month, days);
+
+            long numberOfDaysElapsed = fixedDeposit.issueDate.until(LocalDate.of(year, month, days), ChronoUnit.DAYS);
+
+            if (numberOfDaysElapsed < fixedDeposit.maturityInDays) {
+                return -3.0;
+            }
+
+            double finalAmt = fixedDeposit.principalAmt
+                    * Math.pow((1 + (fixedDeposit.interestRate / 100) / fixedDeposit.frequency),
+                            (fixedDeposit.frequency * fixedDeposit.maturityInDays / 365.0));
+
+            fixedDeposit.finalAmt = finalAmt;
+            fixedDeposit.isActive = false;
+
+            double currBalance = getBalance();
+            setBalance(currBalance + finalAmt);
+            return finalAmt;
         }
         return -1.0;
     }
@@ -356,47 +348,47 @@ class SavingsAccount extends Account implements Serializable {
     }
 
     public double liquidate(String fdID, double withdrawalAmount, int year, int month, int days) {
-        for (FixedDeposit fixedDeposit : this.fixedDeposits) {
-            if (fixedDeposit.fdID.equals(fdID)) {
+        FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
+        if (fixedDeposit != null) {
 
-                FixedDeposit.nextFlag = true;
-                FixedDeposit.recentFDBreakDate = LocalDate.of(year, month, days);
+            FixedDeposit.nextFlag = true;
+            FixedDeposit.recentFDBreakDate = LocalDate.of(year, month, days);
 
-                long numberOfDaysElapsed = fixedDeposit.issueDate.until(LocalDate.of(year, month, days), ChronoUnit.DAYS);
+            long numberOfDaysElapsed = fixedDeposit.issueDate.until(LocalDate.of(year, month, days), ChronoUnit.DAYS);
 
-                float revisedInterestRate = setRevisedInterestRate(numberOfDaysElapsed);
-                revisedInterestRate = Math.min(revisedInterestRate - 1, fixedDeposit.interestRate - 1);
+            float revisedInterestRate = setRevisedInterestRate(numberOfDaysElapsed);
+            revisedInterestRate = Math.min(revisedInterestRate - 1, fixedDeposit.interestRate - 1);
 
-                double expectedAmt = fixedDeposit.principalAmt
-                        * Math.pow((1 + (fixedDeposit.interestRate / 100) / fixedDeposit.frequency),
-                                (fixedDeposit.frequency * (numberOfDaysElapsed / 365.0)));
+            double expectedAmt = fixedDeposit.principalAmt
+                    * Math.pow((1 + (fixedDeposit.interestRate / 100) / fixedDeposit.frequency),
+                            (fixedDeposit.frequency * (numberOfDaysElapsed / 365.0)));
 
-                double realAmt = fixedDeposit.principalAmt
-                        * Math.pow((1 + (revisedInterestRate / 100) / fixedDeposit.frequency),
-                                (fixedDeposit.frequency * (numberOfDaysElapsed / 365.0)));
+            double realAmt = fixedDeposit.principalAmt
+                    * Math.pow((1 + (revisedInterestRate / 100) / fixedDeposit.frequency),
+                            (fixedDeposit.frequency * (numberOfDaysElapsed / 365.0)));
 
-                if (withdrawalAmount > realAmt) {
-                    return -2.0;
-                }
+            if (withdrawalAmount > realAmt) {
+                return -2.0;
+            }
 
-                fixedDeposit.principalAmt = realAmt - withdrawalAmount;
-                System.out.println("-------------------------------------------------");
-                System.out.printf("Remaining Principal Amount:\n%.2f\n", fixedDeposit.principalAmt);
-                System.out.println("-------------------------------------------------");
+            fixedDeposit.principalAmt = realAmt - withdrawalAmount;
+            System.out.println("-------------------------------------------------");
+            System.out.printf("Remaining Principal Amount:\n%.2f\n", fixedDeposit.principalAmt);
+            System.out.println("-------------------------------------------------");
 
-                fixedDeposit.maturityInDays -= numberOfDaysElapsed;
-                fixedDeposit.issueDate = LocalDate.of(year, month, days);
+            fixedDeposit.maturityInDays -= numberOfDaysElapsed;
+            fixedDeposit.issueDate = LocalDate.of(year, month, days);
 
-                if ((int) fixedDeposit.principalAmt == 0) {
-                    fixedDeposit.isActive = false;
-                }
+            if ((int) fixedDeposit.principalAmt == 0) {
+                fixedDeposit.isActive = false;
+            }
 
 //                super.balance += withdrawalAmount;
-                double currBalance = getBalance();
-                setBalance(currBalance + withdrawalAmount);
-                return withdrawalAmount;
-            }
+            double currBalance = getBalance();
+            setBalance(currBalance + withdrawalAmount);
+            return withdrawalAmount;
         }
+
         return -1.0;
     }
 }
@@ -612,10 +604,12 @@ public class AccountManagement002 {
             }
         }
 
-        boolean doesFDAlreadyExist = acc1.FDExists(fdID);
+        boolean doesFDAlreadyExist = acc1.ActiveFDExisits(fdID);
+        boolean skipNewLine = true;
 
         if (!doesFDAlreadyExist) {
             System.out.println("Enter the amount to invest:");
+            skipNewLine = false;
             double investment = sc.nextDouble();
 
             while (investment > acc1.getBalance()) {
@@ -633,9 +627,14 @@ public class AccountManagement002 {
 
             System.out.println("Enter the maturity of the deposit(in days):");
             int maturityInDays = sc.nextInt();
-            if (maturityInDays > 3650) {
+            while (maturityInDays > 3650) {
                 System.err.println("You can only create a fixed deposit for a maximum of 10 years.");
-                System.exit(0);
+                System.out.println("Please enter a valid tenure, else press -1 to exit.");
+                maturityInDays = sc.nextInt();
+
+                if (maturityInDays == -1) {
+                    System.exit(0);
+                }
             }
 
             acc1.createFixedDeposit(fdID, investment, maturityInDays, (byte) 12);
@@ -649,7 +648,10 @@ public class AccountManagement002 {
         System.out.println("-------------------------------------------------");
 
         System.out.println("Do you want to break the FD?");
-        sc.nextLine();
+        
+        if (!skipNewLine)
+            sc.nextLine();
+       
         String initialDecision = sc.nextLine();
         if (initialDecision.toUpperCase().equals("NO") || initialDecision.toUpperCase().equals("N")) {
             sc.close();

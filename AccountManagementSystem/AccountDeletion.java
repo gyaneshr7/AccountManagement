@@ -18,7 +18,7 @@ public class AccountDeletion {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream("database.txt"));
             tempdatabase = (HashMap) ois.readObject();
 
-            System.out.println("Enter the account number:");
+            System.out.println("Enter the account number to delete:");
             String accno = sc.nextLine();
 
             while (!tempdatabase.containsKey(accno)) {
@@ -33,6 +33,7 @@ public class AccountDeletion {
 
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("database.txt"));
             oos.writeObject(tempdatabase);
+            System.out.println("Account deleted successfully!");
 
         } catch (ClassNotFoundException ex) {
             System.err.println("The bank database is empty. Please create an account first.");

@@ -36,6 +36,11 @@ public class AccountInfo {
         } catch (IOException ex) {
             System.out.println(ex);
         }
+        
+        if(tempdatabase.isEmpty()){
+            System.err.println("The bank database is empty. Please create an account first.");
+            return;
+        }
 
         System.out.println("For viewing a specefic account, press 1.");
         System.out.println("For viewing the information related to all the accounts, press 2.");
@@ -46,6 +51,7 @@ public class AccountInfo {
             switch (option) {
                 case 1:
                     System.out.println("Enter the account number:");
+                    sc.nextLine();
                     String accno = sc.nextLine();
 
                     while (!tempdatabase.containsKey(accno)) {
