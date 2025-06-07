@@ -164,19 +164,35 @@ class SavingsAccount extends Account implements Serializable {
     private TreeMap<String, FixedDeposit> fixedDeposits;
 
     private static final long serialVersionUID = 2L;
+    private transient boolean deserialized = false;
+
+    //method for implementing method-access block after deserialization
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject(); // Restore fields
+        deserialized = true;    // Custom logic
+    }
+
+    private void checkAccess() {
+        if (deserialized) {
+            throw new SecurityException("Methods cannot be accessed after deserialization.");
+        }
+    }
 
     //non-parameterized constructor initialized for Serialization
     public SavingsAccount() {
+        checkAccess();
         System.out.println("Savings Account Instantiated");
     }
 
     // Methods for depositing or withdrawing a certain amount
     public void deposit(float amt) {
+        checkAccess();
         float finalAmt = (float) getBalance() + amt;
         setBalance(finalAmt);
     }
 
     public void withdraw(float amt) {
+        checkAccess();
         float finalAmt = (float) getBalance() - amt;
         setBalance(finalAmt);
     }
@@ -184,17 +200,20 @@ class SavingsAccount extends Account implements Serializable {
     // Constructors
     public SavingsAccount(String accNo, String name, String address, String phoneNo, LocalDate dob) {
         super(accNo, name, address, phoneNo, dob);
+        checkAccess();
         super.setBalance(0.0);
         fixedDeposits = null;
     }
 
     public SavingsAccount(String accNo, String name, String address, String phoneNo, LocalDate dob, double balance) {
         super(accNo, name, address, phoneNo, dob, balance);
+        checkAccess();
         fixedDeposits = null;
     }
 
     // method for validating Fixed Deposit ID
     public boolean validateID(String fdID) {
+        checkAccess();
         if (!fdID.startsWith("FD")) {
             return false;
         }
@@ -211,6 +230,7 @@ class SavingsAccount extends Account implements Serializable {
     }
 
     public boolean ActiveFDExisits(String fdID) {
+        checkAccess();
         if (this.fixedDeposits != null) {
             FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
             return fixedDeposit != null && fixedDeposit.isActive == true
@@ -221,6 +241,7 @@ class SavingsAccount extends Account implements Serializable {
     }
 
     public void validateDate(String fdID, int year, int month, int day) throws InvalidDateException, DateTimeException {
+        checkAccess();
         if (this.fixedDeposits != null) {
             FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
             if (fixedDeposit != null && LocalDate.of(year, month, day).compareTo(fixedDeposit.issueDate) <= 0) {
@@ -237,6 +258,7 @@ class SavingsAccount extends Account implements Serializable {
 
     // Methods associated with creating and breaking fixed deposits.
     public void createFixedDeposit(String fdID, double principalAmt, int maturityInDays, byte frequency) {
+        checkAccess();
         if (principalAmt > super.getBalance()) {
             System.out.println("Not enough balance");
             System.exit(0);
@@ -261,6 +283,7 @@ class SavingsAccount extends Account implements Serializable {
     }
 
     public double amountAtMaturity(String fdID) {
+        checkAccess();
 
         FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
         if (fixedDeposit != null) {
@@ -276,6 +299,7 @@ class SavingsAccount extends Account implements Serializable {
     }
 
     public double amountAtWithdrawal(String fdID, int year, int month, int days) {
+        checkAccess();
         FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
 
         if (fixedDeposit != null) {
@@ -292,6 +316,7 @@ class SavingsAccount extends Account implements Serializable {
     }
 
     public double breakFixedDeposit(String fdID, int year, int month, int days) {
+        checkAccess();
         FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
         if (fixedDeposit != null) {
             if (fixedDeposit.isActive == false) {
@@ -322,6 +347,7 @@ class SavingsAccount extends Account implements Serializable {
     }
 
     private float setRevisedInterestRate(long numberOfDaysElapsed) {
+        checkAccess();
         if (numberOfDaysElapsed < 7) {
             return 0.0f;
         } else if (numberOfDaysElapsed < 46) {
@@ -348,6 +374,7 @@ class SavingsAccount extends Account implements Serializable {
     }
 
     public double liquidate(String fdID, double withdrawalAmount, int year, int month, int days) {
+        checkAccess();
         FixedDeposit fixedDeposit = fixedDeposits.get(fdID);
         if (fixedDeposit != null) {
 
@@ -582,7 +609,7 @@ public class AccountManagement002 {
         return true;
     }
 
-    public static boolean validateAccountNumber(String accNo, HashMap<String,SavingsAccount> tempdatabase) {
+    public static boolean validateAccountNumber(String accNo, HashMap<String, SavingsAccount> tempdatabase) {
         return accNo.matches("\\d{11,16}") && !tempdatabase.containsKey(accNo) && tempdatabase.get(accNo) == null;
     }
 
@@ -648,10 +675,11 @@ public class AccountManagement002 {
         System.out.println("-------------------------------------------------");
 
         System.out.println("Do you want to break the FD?");
-        
-        if (!skipNewLine)
+
+        if (!skipNewLine) {
             sc.nextLine();
-       
+        }
+
         String initialDecision = sc.nextLine();
         if (initialDecision.toUpperCase().equals("NO") || initialDecision.toUpperCase().equals("N")) {
             sc.close();
@@ -727,7 +755,7 @@ public class AccountManagement002 {
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
-        
+
         // import the hashmap from the database file to the current program
         HashMap<String, SavingsAccount> tempdatabase;
         try {
@@ -739,7 +767,7 @@ public class AccountManagement002 {
 
         System.out.println("Enter the account number: ");
         String accNo = sc.nextLine();
-        while (validateAccountNumber(accNo,tempdatabase) == false) {
+        while (validateAccountNumber(accNo, tempdatabase) == false) {
             System.out.println("Either the account number is invalid or it already exists. Please enter a valid account number or enter 1 for exit: ");
             accNo = sc.nextLine();
             if (accNo.equals("1")) {
