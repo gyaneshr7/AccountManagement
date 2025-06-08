@@ -610,7 +610,7 @@ public class AccountManagement002 {
     }
 
     public static boolean validateAccountNumber(String accNo, HashMap<String, SavingsAccount> tempdatabase) {
-        return accNo.matches("\\d{11,16}") && !tempdatabase.containsKey(accNo) && tempdatabase.get(accNo) == null;
+        return accNo.matches("\\d{11,16}");
     }
 
     public static boolean validatePhoneNo(String phoneNo) {
@@ -765,18 +765,65 @@ public class AccountManagement002 {
             tempdatabase = new HashMap<>();
         }
 
-        System.out.println("Enter the account number: ");
+        System.out.println("Enter the account number:");
         String accNo = sc.nextLine();
         while (validateAccountNumber(accNo, tempdatabase) == false) {
-            System.out.println("Either the account number is invalid or it already exists. Please enter a valid account number or enter 1 for exit: ");
+            System.out.println("The account number entered is invalid. Please enter a valid account number or enter 1 to exit: ");
             accNo = sc.nextLine();
             if (accNo.equals("1")) {
                 System.exit(0);
             }
         }
 
+        // maintain a properties data structure for storing the account number and passwords as the key-value pairs
+        Properties credentials = new Properties();
+        try {
+            credentials.loadFromXML(new FileInputStream("passwordsdb.xml"));
+        } catch (Exception e) {
+            /* any exception would mean either the file is not created yet or the file is empty.
+            In either case the exception is ignored when the program is run for the first time. */
+        }
+
+        String psswrd;
+
+        // check whether the account number exists in tempdatabase or not
+        if (tempdatabase.get(accNo) != null) {
+            /* if the account number already exists prompt the user to enter the password for the account number
+            and validate it */
+            System.out.println("Enter the password assosciated with this account number to access it.");
+            int count = 3;
+            psswrd = sc.nextLine();
+
+            while (!credentials.getProperty(accNo).equals(psswrd) && count > 0) {
+                System.out.println("You have " + count-- + " attempts to enter the correct password.");
+                psswrd = sc.nextLine();
+            }
+
+            if (count == 0) {
+                System.out.println("Please try again after some time.");
+                System.exit(0);
+            }
+        } else {
+            String confirm_psswrd;
+            System.out.println("Thank you for creating an account. Please enter a new password.");
+
+            do {
+                psswrd = sc.nextLine();
+                System.out.println("Confirm new password.");
+                confirm_psswrd = sc.nextLine();
+
+                if (!psswrd.equals(confirm_psswrd)) {
+                    System.out.println("Password entered didn't match. Please try again.");
+                }
+            } while (!psswrd.equals(confirm_psswrd));
+            
+            //set the password for the newly created account number
+            credentials.setProperty(accNo, psswrd);
+        }
+
         System.out.println("Enter the name of the account holder: ");
         String name = sc.nextLine();
+        
         while (validateName(name) == false) {
             System.out.println("Invalid name. Please enter a valid name or press 1 to exit.");
             name = sc.nextLine();
@@ -787,6 +834,7 @@ public class AccountManagement002 {
 
         System.out.println("Enter the address of the account holder: ");
         String address = sc.nextLine();
+        
         if (address.length() < 10) {
             System.out.println("Invalid address");
             System.exit(0);
@@ -794,13 +842,14 @@ public class AccountManagement002 {
 
         System.out.println("Enter the contact number of the account holder: ");
         String phoneNo = sc.nextLine();
+        
         while (validatePhoneNo(phoneNo) == false) {
             System.out.println("Invalid contact number");
             phoneNo = sc.nextLine();
+            
             if (phoneNo.equals("1")) {
                 System.exit(0);
             }
-
         }
 
         System.out.println("Enter the date of birth(dd-MM-yyyy) of the account holder: ");
@@ -854,8 +903,13 @@ public class AccountManagement002 {
         tempdatabase.put(accNo, acc1);
 
         try {
+            //save the tempdatabase to database.txt file
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("database.txt"));
             oos.writeObject(tempdatabase);
+            
+            //save the 'credentials' properties to the passwordsdb.xml file
+            credentials.storeToXML(new FileOutputStream("passwordsdb.xml"), "Updated passwords list");
+            
             System.out.println("Account saved successfully");
         } catch (IOException ex) {
             System.err.println("Some error occured while saving the account in the database");
