@@ -693,6 +693,7 @@ public class AccountManagement002 {
         int day = sc.nextInt();
 
         //Validation to check whether the year, month and date entered are correct or not
+        
         while (true) {
             try {
                 acc1.validateDate(fdID, year, month, day);
@@ -757,6 +758,7 @@ public class AccountManagement002 {
         Scanner sc = new Scanner(System.in);
 
         // import the hashmap from the database file to the current program
+        
         HashMap<String, SavingsAccount> tempdatabase;
         try {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream("database.txt"));
@@ -776,6 +778,7 @@ public class AccountManagement002 {
         }
 
         // maintain a properties data structure for storing the account number and passwords as the key-value pairs
+        
         Properties credentials = new Properties();
         try {
             credentials.loadFromXML(new FileInputStream("passwordsdb.xml"));
@@ -787,9 +790,12 @@ public class AccountManagement002 {
         String psswrd;
 
         // check whether the account number exists in tempdatabase or not
+        
         if (tempdatabase.get(accNo) != null) {
+        
             /* if the account number already exists prompt the user to enter the password for the account number
             and validate it */
+            
             System.out.println("Enter the password assosciated with this account number to access it.");
             int count = 3;
             psswrd = sc.nextLine();
@@ -809,6 +815,30 @@ public class AccountManagement002 {
 
             do {
                 psswrd = sc.nextLine();
+
+                /*                Explanation:
+
+                           ^                 # start-of-string
+                           (?=.*[0-9])       # a digit must occur at least once
+                           (?=.*[a-z])       # a lower case letter must occur at least once
+                           (?=.*[A-Z])       # an upper case letter must occur at least once
+                           (?=.*[@#$%^&+=])  # a special character must occur at least once
+                           (?=\S+$)          # no whitespace allowed in the entire string
+                           .{8,}             # anything, at least eight places though
+                           $                 # end-of-string                                    */
+                
+                while (!psswrd.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$")) {
+                    System.err.println("Please create a strong password that should have at least:");
+                    System.err.println("A length of 8 characters.");
+                    System.err.println("One lowercase letter");
+                    System.err.println("One Uppercase letter");
+                    System.err.println("One digit");
+                    System.err.println("One special character");
+                    System.err.println("No whitespaces");
+
+                    psswrd = sc.nextLine();
+                }
+                
                 System.out.println("Confirm new password.");
                 confirm_psswrd = sc.nextLine();
 
@@ -816,14 +846,14 @@ public class AccountManagement002 {
                     System.out.println("Password entered didn't match. Please try again.");
                 }
             } while (!psswrd.equals(confirm_psswrd));
-            
+
             //set the password for the newly created account number
             credentials.setProperty(accNo, psswrd);
         }
 
         System.out.println("Enter the name of the account holder: ");
         String name = sc.nextLine();
-        
+
         while (validateName(name) == false) {
             System.out.println("Invalid name. Please enter a valid name or press 1 to exit.");
             name = sc.nextLine();
@@ -834,7 +864,7 @@ public class AccountManagement002 {
 
         System.out.println("Enter the address of the account holder: ");
         String address = sc.nextLine();
-        
+
         if (address.length() < 10) {
             System.out.println("Invalid address");
             System.exit(0);
@@ -842,11 +872,11 @@ public class AccountManagement002 {
 
         System.out.println("Enter the contact number of the account holder: ");
         String phoneNo = sc.nextLine();
-        
+
         while (validatePhoneNo(phoneNo) == false) {
             System.out.println("Invalid contact number");
             phoneNo = sc.nextLine();
-            
+
             if (phoneNo.equals("1")) {
                 System.exit(0);
             }
@@ -906,10 +936,10 @@ public class AccountManagement002 {
             //save the tempdatabase to database.txt file
             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("database.txt"));
             oos.writeObject(tempdatabase);
-            
+
             //save the 'credentials' properties to the passwordsdb.xml file
             credentials.storeToXML(new FileOutputStream("passwordsdb.xml"), "Updated passwords list");
-            
+
             System.out.println("Account saved successfully");
         } catch (IOException ex) {
             System.err.println("Some error occured while saving the account in the database");
